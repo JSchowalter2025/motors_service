@@ -36,7 +36,6 @@ class MotorZaberZMQService(ZMQServiceBase):
         super().__init__(rep_port = cParams['req_port'], 
             n_workers= self.n_workers,
             http_port = cParams['http_port'],
-            service_name = cParams['name'],
             loki_host = cParams['loki_host'],
             loki_port = cParams['loki_port'],
             redis_host = cParams['redis_host'],
