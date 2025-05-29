@@ -19,7 +19,7 @@ class MotorAPTZMQService(ZMQServiceBase):
         # global logger
         
         self.config_file = config_file
-        self.config_dir  = 'config'
+        self.config_dir  = './config'
         self.config = self.load_config()
         self.time_start = datetime.now()
         
