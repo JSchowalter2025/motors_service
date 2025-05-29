@@ -149,6 +149,5 @@ class MotorZaberZMQService(ZMQServiceBase):
 if __name__ == '__main__':
     config_file = 'zaber_motors.yaml'
     service = MotorZaberZMQService(config_file)
-    service.run()    # block until keyboard interrupt
     service.start()  # clean up sockets & context
 
