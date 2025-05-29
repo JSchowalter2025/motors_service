@@ -91,7 +91,7 @@ class MotorAPTZMQService(ZMQServiceBase):
             # APT list
             if cmd == 'apt':
                 names = ','.join(m.attributes['name'] for m in self._motor) + ','
-                return names.encode()
+                return names#.encode()
 
             # motor commands
             if cmd in ('for','back','goto','getpos','getapos','home','done'):
@@ -121,7 +121,7 @@ class MotorAPTZMQService(ZMQServiceBase):
                     self._motor[idx].cleanUpAPT()
                     resp = "Cleaned"
 
-                return str(resp).encode()
+                return str(resp)#.encode()
 
             # LCController commands
             if cmd.startswith('lc'):
@@ -158,7 +158,7 @@ class MotorAPTZMQService(ZMQServiceBase):
                 if method is None:
                     raise ValueError(f"Unknown LC command ‘{cmd}’")
                 resp = method()
-                return str(resp).encode()
+                return str(resp)#.encode()
 
             # unknown
             return b"Invalid Command"
@@ -166,7 +166,7 @@ class MotorAPTZMQService(ZMQServiceBase):
         except Exception as e:
             err = f"Error: {e}"
             print(err)
-            return err.encode()
+            return err#.encode()
 
     @staticmethod
     def find_com(substring: str) -> str:

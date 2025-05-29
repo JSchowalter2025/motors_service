@@ -136,7 +136,7 @@ class MotorZaberZMQService(ZMQServiceBase):
         except Exception as e:
             err = f"Error: {e}"
             print(err)
-            return err.encode()
+            return err#.encode()
 
     @staticmethod
     def find_com(substring: str) -> str:
