@@ -140,11 +140,11 @@ class MotorZaberZMQService(ZMQServiceBase):
                 self.logger.debug(f"Get speed command: {parts[1]}")
 
             elif cmd == 'zpotentiometer':
-                enabled = (parts[2].decode() == 'True')
+                enabled = (parts[2] == 'True')
                 msgout = self._zb[0].potentiometer_enabled(int(parts[1]), enabled)
                 self.logger.debug(f"Set potentiometer enabled: {parts[1]} {enabled}")
             elif cmd == 'zled':
-                enabled = (parts[2].decode() == 'True')
+                enabled = (parts[2] == 'True')
                 msgout = self._zb[0].LED_enabled(int(parts[1]), enabled)
                 self.logger.debug(f"Set LED enabled: {parts[1]} {enabled}")
 
