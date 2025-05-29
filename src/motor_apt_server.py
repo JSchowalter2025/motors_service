@@ -177,7 +177,7 @@ class MotorAPTZMQService(ZMQServiceBase):
         raise RuntimeError(f"Could not find device matching {substring}")
 
 if __name__ == '__main__':
-    config_file = 'apt_server.yaml'
+    config_file = 'apt_motors.yaml'
     service = MotorAPTZMQService(config_file)
     service.run()    # block until keyboard interrupt
     service.shutdown()  # clean up sockets & context
