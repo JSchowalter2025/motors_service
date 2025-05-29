@@ -2,7 +2,7 @@ import datetime
 import os
 import yaml
 from serial.tools import list_ports
-from zmqhelper import ZMQServiceBase
+from zmqhelper import ZMQServiceBase, Client
 from motors import RotationController, LinearController, LCController
 from datetime import datetime
 
