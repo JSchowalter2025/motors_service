@@ -63,16 +63,19 @@ class MotorAPTZMQService(ZMQServiceBase):
         """Load YAML config & initialize motor + LCController lists."""
         config = self.load_config()
         motor_dicts = config['motors']
-       
-        for m in motor_dicts:
-            t = m.get('type','').lower()
-            if t == 'rotational':
-                self._motor.append(RotationController(m))
-            elif t == 'linear':
-                self._motor.append(LinearController(m))
-            elif t == 'lccontroller':
-                port = self.find_com('thorlabs lcc25')
-                self._lcc.append(LCController(port))
+        try:
+            for m in motor_dicts:
+                t = m.get('type','').lower()
+                if t == 'rotational':
+                    self._motor.append(RotationController(m))
+                elif t == 'linear':
+                    self._motor.append(LinearController(m))
+                elif t == 'lccontroller':
+                    port = self.find_com('thorlabs lcc25')
+                    self._lcc.append(LCController(port))
+        except Exception as e:
+            self.logger.error(f"Error setting up motors: {e}")
+            raise RuntimeError(f"Failed to initialize motors: {e}")
 
     def handle_request(self, message: str) -> str:
         """

@@ -61,16 +61,20 @@ class MotorZaberZMQService(ZMQServiceBase):
         """Load YAML config & initialize motor"""
         config = self.load_config()
         motor_dicts = config['motors']
-        for m in motor_dicts:
-            if m['type'].lower() == 'zaber':
-                try:
-                    port = self.find_com('ftdi ft232r usb')[-1]
-                except:
-                    self.logger.debug("zaber port reverting to yaml")
-                    port = m['port']
-                self.channels = m['channels']
-                self.chNames = m['channelName']
-                self._zb.append(zaber_base(port, self.channels))
+        try:
+            for m in motor_dicts:
+                if m['type'].lower() == 'zaber':
+                    try:
+                        port = self.find_com('ftdi ft232r usb')[-1]
+                    except:
+                        self.logger.debug("zaber port reverting to yaml")
+                        port = m['port']
+                    self.channels = m['channels']
+                    self.chNames = m['channelName']
+                    self._zb.append(zaber_base(port, self.channels))
+        except Exception as e:
+            self.logger.error(f"Error setting up Zaber motors: {e}")
+            raise RuntimeError(f"Could not set up Zaber motors: {e}")
 
     def handle_request(self, message: str) -> str:
         """
