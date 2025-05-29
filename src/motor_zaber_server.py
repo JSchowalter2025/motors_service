@@ -17,7 +17,7 @@ class MotorZaberZMQService(ZMQServiceBase):
     def __init__(self, config_file):
         # global logger
         self.config_file = config_file
-        self.config_dir  = './config'
+        self.config_dir  = 'config/'
         self.config = self.load_config()
         
         self.n_workers = 1 # Zaber motors can only handle one command at a time

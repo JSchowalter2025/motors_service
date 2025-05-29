@@ -19,7 +19,7 @@ class MotorAPTZMQService(ZMQServiceBase):
         # global logger
         
         self.config_file = config_file
-        self.config_dir  = './config'
+        self.config_dir  = 'config/'
         self.config = self.load_config()
         self.time_start = datetime.now()
         
@@ -55,6 +55,7 @@ class MotorAPTZMQService(ZMQServiceBase):
     def load_config(self):
         """Load YAML config file."""
         cfg_path = os.path.join(self.config_dir, self.config_file)
+        print(f"Loading config from {cfg_path}")
         with open(cfg_path, 'r') as f:
             return yaml.safe_load(f)
         
