@@ -1,0 +1,6 @@
+pyzmq
+pyserial
+pylibftdi
+zaber.serial
+git+https://github.com/kshalm/zmqhelpers
+

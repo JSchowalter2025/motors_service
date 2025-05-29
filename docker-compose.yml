@@ -1,0 +1,23 @@
+version: '3'
+services:
+    motors:
+        image: 132.163.53.227:4000/motorserver_amd
+        container_name: motorserver
+        ports:
+            - "55000:55000"
+            - "54000:54000"
+        volumes:
+            - ../config:/app/config/
+            - ./motors_module/bellMotors/motor_server:/app/motor_server
+        privileged: true
+        tty: true
+        stdin_open: true
+        devices:
+            - '/dev:/dev'
+            - '/dev/bus:/dev/bus'
+        working_dir: '/app/motor_server'
+        restart: always
+        entrypoint:
+            - python3
+            - -u
+            - motor_server_workers_mod.py
