@@ -68,9 +68,9 @@ class MotorZaberZMQService(ZMQServiceBase):
                 except:
                     self.logger.debug("zaber port reverting to yaml")
                     port = m['port']
-                channels = m['channels']
-                chNames = m['channelName']
-                self._zb.append(zaber_base(port, channels))
+                self.channels = m['channels']
+                self.chNames = m['channelName']
+                self._zb.append(zaber_base(port, self.channels))
 
     def handle_request(self, message: str) -> str:
         """
@@ -87,6 +87,11 @@ class MotorZaberZMQService(ZMQServiceBase):
             if cmd == 'test':
                 self.logger.debug("Ping command received")
                 return "Connected"
+            elif cmd[0] == 'zaber':
+                msgout = ''
+                for i in range(len(self.channels)):
+                    msgout += '%s:%s,' % (self.channels[i], self.chNames[i])
+                self.logger.debug(f"Zaber channels: {msgout}")
 
             elif cmd[0] == 'zmoveabs':
                 msgout = self._zb[0].move_absolute(int(cmd[1]), int(cmd[2]))
@@ -145,11 +150,12 @@ class MotorZaberZMQService(ZMQServiceBase):
                 msgout = "Invalid Command"
                 self.logger.debug(f"Invalid command received: {cmd}")
 
-
+            return str(msgout)
+        
         except Exception as e:
             err = f"Error: {e}"
             self.logger.error(f"Exception in handle_request: {err}")
-            return err#.encode()
+            return err
 
     @staticmethod
     def find_com(substring: str) -> str:
