@@ -90,7 +90,8 @@ class MotorZaberZMQService(ZMQServiceBase):
             elif cmd[0] == 'zaber':
                 msgout = ''
                 for i in range(len(self.channels)):
-                    msgout += '%s:%s,' % (self.channels[i], self.chNames[i])
+                    msgout += f"{self.channels[i]}:{self.chNames[i]}, "
+                    # msgout += '%s:%s,' % (self.channels[i], self.chNames[i])
                 self.logger.debug(f"Zaber channels: {msgout}")
 
             elif cmd[0] == 'zmoveabs':
