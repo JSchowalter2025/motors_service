@@ -87,8 +87,10 @@ class MotorZaberZMQService(ZMQServiceBase):
             if cmd == 'test':
                 self.logger.debug("Ping command received")
                 return "Connected"
+            
             elif cmd[0] == 'zaber':
                 msgout = ''
+                self.logger.debug(f"Zaber command received, fetching channels {self.channels}, {self.chNames}")
                 for i in range(len(self.channels)):
                     msgout += f"{self.channels[i]}:{self.chNames[i]}, "
                     # msgout += '%s:%s,' % (self.channels[i], self.chNames[i])
