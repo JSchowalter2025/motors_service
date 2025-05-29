@@ -66,7 +66,7 @@ class MotorZaberZMQService(ZMQServiceBase):
                 try:
                     port = self.find_com('ftdi ft232r usb')[-1]
                 except:
-                    print("zaber port reverting to yaml")
+                    self.logger.debug("zaber port reverting to yaml")
                     port = m['port']
                 channels = m['channels']
                 chNames = m['channelName']
@@ -81,61 +81,74 @@ class MotorZaberZMQService(ZMQServiceBase):
         try:
             parts = message.split()
             cmd   = parts[0].lower()
+            self.logger.debug(f"Received command: {message}")
 
             # ping
             if cmd == 'test':
-                return b"Connected"
+                self.logger.debug("Ping command received")
+                return "Connected"
 
             elif cmd[0] == 'zmoveabs':
                 msgout = self._zb[0].move_absolute(int(cmd[1]), int(cmd[2]))
+                self.logger.debug(f'Absolute move command: {cmd[1]} {cmd[2]}')
 
             elif cmd[0] == 'zmoverel':
-                # print('relative', cmd, int(cmd[2]))
+                # self.logger.debug('relative', cmd, int(cmd[2]))
                 msgout = self._zb[0].move_relative(int(cmd[1]), int(cmd[2]))
-                print('finished relative move ', msgout)
+                self.logger.debug(f'Relative move command: {cmd[1]} {cmd[2]}')
 
             elif cmd[0] == 'zgetpos':
                 msgout = self._zb[0].get_position(int(cmd[1]))
-                print(msgout, "gautam")
+                self.logger.debug(f"Get position command: {cmd[1]}")
 
             elif cmd[0] == 'zhome':
-                print('zhoming')
+                self.logger.debug('zhoming')
                 msgout = self._zb[0].home(int(cmd[1]))
+                self.logger.debug(f"Home command: {cmd[1]}")
 
             elif cmd[0] == 'zclose':
                 msgout = self._zb[0].close()
+                self.logger.debug("Closing Zaber connection")
 
             elif cmd[0] == 'zrenumber':
                 msgout = self._zb[0].renumber()
                 # Need to reconnect to the device after renumbering
+                self.logger.debug("Renumbering Zaber device")
                 self.setup()
+                self.logger.debug("Reconnected to Zaber device after renumbering")
 
             elif cmd[0] == 'zsetknobspeed':
                 msgout = self._zb[0].set_speed_knob(int(cmd[1]), float(cmd[2]))
+                self.logger.debug(f"Set knob speed command: {cmd[1]} {cmd[2]}")
 
             elif cmd[0] == 'zgetknobspeed':
                 msgout = self._zb[0].get_speed_knob(int(cmd[1]))
+                self.logger.debug(f"Get knob speed command: {cmd[1]}")
 
             elif cmd[0] == 'zsetspeed':
                 msgout = self._zb[0].set_speed(int(cmd[1]), float(cmd[2]))
-
+                self.logger.debug(f"Set speed command: {cmd[1]} {cmd[2]}")
             elif cmd[0] == 'zgetspeed':
                 msgout = self._zb[0].get_speed(int(cmd[1]))
+                self.logger.debug(f"Get speed command: {cmd[1]}")
 
             elif cmd[0] == 'zpotentiometer':
                 enabled = (cmd[2].decode() == 'True')
                 msgout = self._zb[0].potentiometer_enabled(int(cmd[1]), enabled)
+                self.logger.debug(f"Set potentiometer enabled: {cmd[1]} {enabled}")
             elif cmd[0] == 'zled':
                 enabled = (cmd[2].decode() == 'True')
                 msgout = self._zb[0].LED_enabled(int(cmd[1]), enabled)
+                self.logger.debug(f"Set LED enabled: {cmd[1]} {enabled}")
 
             else:
                 msgout = "Invalid Command"
+                self.logger.debug(f"Invalid command received: {cmd}")
 
 
         except Exception as e:
             err = f"Error: {e}"
-            print(err)
+            self.logger.error(f"Exception in handle_request: {err}")
             return err#.encode()
 
     @staticmethod

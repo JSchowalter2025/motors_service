@@ -77,21 +77,22 @@ class MotorAPTZMQService(ZMQServiceBase):
     def handle_request(self, message: str) -> str:
         """
         Called in each worker thread.
-        `message` is the raw bytes from the client.
-        Return the raw bytes reply.
         """
         try:
             parts = message.split()
             cmd   = parts[0].lower()
+            self.logger.debug(f"Received command: {message}")
 
             # ping
             if cmd == 'test':
-                return b"Connected"
+                self.logger.debug("Ping received")
+                return "Connected"
 
             # APT list
             if cmd == 'apt':
                 names = ','.join(m.attributes['name'] for m in self._motor) + ','
-                return names#.encode()
+                self.logger.debug(f"List of APT motors: {names}")
+                return names
 
             # motor commands
             if cmd in ('for','back','goto','getpos','getapos','home','done'):
@@ -105,23 +106,28 @@ class MotorAPTZMQService(ZMQServiceBase):
                         resp = self._motor[idx].mRel(-distance)
                     else:  # goto
                         resp = self._motor[idx].mAbs(distance)
+                    self.logger.debug(f"Motor command: {cmd} {distance} on motor {idx}")
 
                 elif cmd == 'getpos':
                     idx  = int(parts[1])
                     resp = self._motor[idx].getPos()
+                    self.logger.debug(f"Get position command: {idx} -> {resp}")
                 elif cmd == 'getapos':
                     idx  = int(parts[1])
                     resp = self._motor[idx].getAPos()
+                    self.logger.debug(f"Get absolute position command: {idx} -> {resp}")
                 elif cmd == 'home':
                     idx  = int(parts[1])
                     self._motor[idx].mHome()
                     resp = "Homed motor"
+                    self.logger.debug(f"Home command: {idx}")
                 else: # done
                     idx  = int(parts[1])
                     self._motor[idx].cleanUpAPT()
                     resp = "Cleaned"
+                    self.logger.debug(f"Done command: {idx}")
 
-                return str(resp)#.encode()
+                return str(resp)
 
             # LCController commands
             if cmd.startswith('lc'):
@@ -154,19 +160,20 @@ class MotorAPTZMQService(ZMQServiceBase):
                     'runtestmod': lambda: lcc.run_test_mode(),
                     'remtog':     lambda: lcc.remote_toggle(int(args[0])),
                 }.get(lc_cmd)
+                self.logger.debug(f"LC command: {lc_cmd} with args {args}")
 
                 if method is None:
                     raise ValueError(f"Unknown LC command ‘{cmd}’")
                 resp = method()
-                return str(resp)#.encode()
+                return str(resp)
 
             # unknown
-            return b"Invalid Command"
+            return "Invalid Command"
 
         except Exception as e:
             err = f"Error: {e}"
             print(err)
-            return err#.encode()
+            return err
 
     @staticmethod
     def find_com(substring: str) -> str:
