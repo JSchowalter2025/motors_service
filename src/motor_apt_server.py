@@ -179,6 +179,5 @@ class MotorAPTZMQService(ZMQServiceBase):
 if __name__ == '__main__':
     config_file = 'apt_motors.yaml'
     service = MotorAPTZMQService(config_file)
-    service.run()    # block until keyboard interrupt
-    service.shutdown()  # clean up sockets & context
+    service.start()  # block until keyboard interrupt
 
