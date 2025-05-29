@@ -89,7 +89,7 @@ class MotorZaberZMQService(ZMQServiceBase):
             
             elif cmd == 'zaber':
                 msgout = ''
-                self.logger.debug(f"Zaber command received, fetching channels {self.channels}, {self.chNames}")
+                # self.logger.debug(f"Zaber command received, fetching channels {self.channels}, {self.chNames}")
                 for i in range(len(self.channels)):
                     msgout += f"{self.channels[i]}:{self.chNames[i]}, "
                     # msgout += '%s:%s,' % (self.channels[i], self.chNames[i])
@@ -139,11 +139,11 @@ class MotorZaberZMQService(ZMQServiceBase):
                 msgout = self._zb[0].get_speed(int(parts[1]))
                 self.logger.debug(f"Get speed command: {parts[1]}")
 
-            elif cmd[0] == 'zpotentiometer':
+            elif cmd == 'zpotentiometer':
                 enabled = (parts[2].decode() == 'True')
                 msgout = self._zb[0].potentiometer_enabled(int(parts[1]), enabled)
                 self.logger.debug(f"Set potentiometer enabled: {parts[1]} {enabled}")
-            elif cmd[0] == 'zled':
+            elif cmd == 'zled':
                 enabled = (parts[2].decode() == 'True')
                 msgout = self._zb[0].LED_enabled(int(parts[1]), enabled)
                 self.logger.debug(f"Set LED enabled: {parts[1]} {enabled}")
