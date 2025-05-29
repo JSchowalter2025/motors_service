@@ -5,8 +5,8 @@ Created on Wed Aug 05 12:10:18 2015
 @author: qittlab
 Collin Schlager
 """
-from APTMotor import APTMotor
-#from .APTMotor import APTMotor
+# from APTMotor import APTMotor
+from .APTMotor import APTMotor
 
 class RotationController(APTMotor):
 

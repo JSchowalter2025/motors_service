@@ -1,23 +1,49 @@
-version: '3'
+version: '3.3'
 services:
-    motors:
-        image: 132.163.53.227:4000/motorserver_amd
-        container_name: motorserver
+    motors_server_apt:
+        image: motor_control:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: motors_server_apt
         ports:
             - "55000:55000"
-            - "54000:54000"
+            - "55001:55001"
         volumes:
-            - ../config:/app/config/
-            - ./motors_module/bellMotors/motor_server:/app/motor_server
+            - ./config:/app/config/
+            - ./logs:/app/logs/
+            - ./src:/app/
         privileged: true
         tty: true
         stdin_open: true
         devices:
             - '/dev:/dev'
             - '/dev/bus:/dev/bus'
-        working_dir: '/app/motor_server'
+        working_dir: '/app'
         restart: always
         entrypoint:
             - python3
             - -u
-            - motor_server_workers_mod.py
+            - motor_apt_server.py
+    motors_server_zaber:
+        image: motor_control:latest
+        container_name: motors_server_zaber
+        ports:
+            - "54000:54000"
+            - "54001:54001"
+        volumes:
+            - ./config:/app/config/
+            - ./logs:/app/logs/
+            - ./src:/app/
+        privileged: true
+        tty: true
+        stdin_open: true
+        devices:
+            - '/dev:/dev'
+            - '/dev/bus:/dev/bus'
+        working_dir: '/app'
+        restart: always
+        entrypoint:
+            - python3
+            - -u
+            - motor_zaber_server.py

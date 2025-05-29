@@ -4,6 +4,8 @@ import yaml
 from serial.tools import list_ports
 from zmqhelper import ZMQServiceBase
 from motors import zaber_base
+from datetime import datetime
+
 
 class MotorZaberZMQService(ZMQServiceBase):
     """
@@ -20,14 +22,6 @@ class MotorZaberZMQService(ZMQServiceBase):
         
         self.n_workers = 1 # Zaber motors can only handle one command at a time
         self.time_start = datetime.now()
-
-        # these will be populated in setup()
-        self._zb = []
-        self.logger.info("")
-        self.logger.info(f'Zaber motor server Started at {self.time_start}')
-        self.logger.info(f"Config: {self.config}")
-        
-        self.setup()
         
         cParams = self.config['config_setup']
         if 'redis_host' not in cParams or cParams['register_redis'] is False:
@@ -48,6 +42,14 @@ class MotorZaberZMQService(ZMQServiceBase):
             redis_host = cParams['redis_host'],
             redis_port = cParams['redis_port']
         )
+
+        # these will be populated in setup()
+        self._zb = []        
+        self.setup()
+        
+        self.logger.info("")
+        self.logger.info(f'Zaber motor server Started at {self.time_start}')
+        self.logger.info(f"Config: {self.config}")
 
     def load_config(self):
         """Load YAML config file."""
@@ -145,7 +147,8 @@ class MotorZaberZMQService(ZMQServiceBase):
         raise RuntimeError(f"Could not find device matching {substring}")
 
 if __name__ == '__main__':
-    service = MotorZaberZMQService()
+    config_file = 'zaber_motors_config.example.yaml'
+    service = MotorZaberZMQService(config_file)
     service.run()    # block until keyboard interrupt
     service.shutdown()  # clean up sockets & context
 

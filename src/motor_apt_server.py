@@ -4,6 +4,8 @@ import yaml
 from serial.tools import list_ports
 from zmqhelper import ZMQServiceBase
 from motors import RotationController, LinearController, LCController
+from datetime import datetime
+
 
 class MotorAPTZMQService(ZMQServiceBase):
     """
@@ -20,15 +22,6 @@ class MotorAPTZMQService(ZMQServiceBase):
         self.config_dir  = 'config'
         self.config = self.load_config()
         self.time_start = datetime.now()
-
-        # these will be populated in setup()
-        self._motor = []
-        self._lcc   = []
-        self.logger.info("")
-        self.logger.info(f'APT motor server Started at {self.time_start}')
-        self.logger.info(f"Config: {self.config}")
-        
-        self.setup()
         
         cParams = self.config['config_setup']
         if 'redis_host' not in cParams or cParams['register_redis'] is False:
@@ -50,6 +43,15 @@ class MotorAPTZMQService(ZMQServiceBase):
             redis_port = cParams['redis_port']
         )
 
+        # these will be populated in setup()
+        self._motor = []
+        self._lcc   = []
+        self.setup()
+
+        self.logger.info("")
+        self.logger.info(f'APT motor server Started at {self.time_start}')
+        self.logger.info(f"Config: {self.config}")
+        
     def load_config(self):
         """Load YAML config file."""
         cfg_path = os.path.join(self.config_dir, self.config_file)
@@ -174,7 +176,8 @@ class MotorAPTZMQService(ZMQServiceBase):
         raise RuntimeError(f"Could not find device matching {substring}")
 
 if __name__ == '__main__':
-    service = MotorAPTZMQService()
+    config_file = 'apt_server.example.yaml'
+    service = MotorAPTZMQService(config_file)
     service.run()    # block until keyboard interrupt
     service.shutdown()  # clean up sockets & context
 
