@@ -4,7 +4,7 @@ config_setup:
   http_port: 55001
   loki_host: localhost
   loki_port: 3100
-  name: apt_motor_server_alice
+  service_name: apt_motor_server_alice
   redis_host: localhost
   redis_port: 6379
   register_redis: false

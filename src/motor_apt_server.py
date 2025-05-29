@@ -40,7 +40,8 @@ class MotorAPTZMQService(ZMQServiceBase):
             loki_host = cParams['loki_host'],
             loki_port = cParams['loki_port'],
             redis_host = cParams['redis_host'],
-            redis_port = cParams['redis_port']
+            redis_port = cParams['redis_port'],
+            service_name = cParams['service_name']
         )
 
         # these will be populated in setup()
@@ -49,7 +50,7 @@ class MotorAPTZMQService(ZMQServiceBase):
         self.setup()
 
         self.logger.info("")
-        self.logger.info(f'APT motor server Started at {self.time_start}')
+        self.logger.info(f'{self.service_name} APT motor server Started at {self.time_start}')
         self.logger.info(f"Config: {self.config}")
         
     def load_config(self):
