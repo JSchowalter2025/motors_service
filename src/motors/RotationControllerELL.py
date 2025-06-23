@@ -11,9 +11,8 @@ roesel Elliptec library instead of APTmotor.
 """
 from .elliptec.rotator import ELLRotator
 from .elliptec.controller import ELLController #making my editor be quiet about the undefined objects
-import elliptec
-
-class RotationControllerELL(elliptec.Rotator):
+from . import elliptec
+class RotationControllerELL(elliptec.ELLRotator):
 
     def __init__(self, info):
         ''' The APTmotors class is defined with an info dictionary. The elliptec motor class attempts
@@ -23,7 +22,7 @@ class RotationControllerELL(elliptec.Rotator):
         self.attributes = info #Currently self.attributes['zero'] and self.attributes['serial'] are the only things that are important.
         myport = self.getport(self.attributes['serial']) #Finding the port that our serial number is on
         
-        elliptec.Rotator.__init__(self, elliptec.Controller(myport)) #info['serial'], HWTYPE=31)
+        elliptec.ELLRotator.__init__(self, elliptec.ELLController(myport)) #info['serial'], HWTYPE=31)
         
         # APTMotor.setVelocityParameters(
         #   self, info['minVel'], info['acc'], info['maxVel'])
@@ -38,7 +37,7 @@ class RotationControllerELL(elliptec.Rotator):
         pos = (absPosition + self.attributes['zero']) % 360
         # print("Moving to %r (%r)..."%(absPosition,pos))
         try:
-            elliptec.Rotator.set_angle(self, pos)
+            elliptec.ELLRotator.set_angle(self, pos)
         except Exception:
             print('Failed')
             return 'Failed'
@@ -50,15 +49,15 @@ class RotationControllerELL(elliptec.Rotator):
         return 'Success'
 
     def mHome(self):
-        elliptec.Rotator.home(self) #, velocity=9.99978, offset=4.00023) ?
+        elliptec.ELLRotator.home(self) #, velocity=9.99978, offset=4.00023) ?
         return 'Success'
 
     def getPos(self):
-        absolutePos = elliptec.Rotator.get_angle(self)
+        absolutePos = elliptec.ELLRotator.get_angle(self)
         return (360 + absolutePos - self.attributes['zero']) % 360
 
     def getAPos(self):
-        return elliptec.Rotator.get_angle(self)
+        return elliptec.ELLRotator.get_angle(self)
         
     def getport(self, myserial): #give this the serial number and it will look for the port with the device with that serial number
         ports = elliptec.find_ports() #We need to find the ports for the ELL motors to instance the controller.
@@ -67,7 +66,7 @@ class RotationControllerELL(elliptec.Rotator):
         for port in ports:
             print("Testing" + port)
             
-            temp = elliptec.Rotator(elliptec.Controller(port))
+            temp = elliptec.ELLRotator(elliptec.ELLController(port))
             info = temp.get("info") #XXX This currently can't handle multiple motors with a single serial connection.
             motorserial = info["Serial No."]
             
