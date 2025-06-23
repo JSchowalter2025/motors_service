@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu May 29 15:20:39 2025
@@ -19,12 +18,11 @@ class RotationControllerELL(elliptec.Rotator):
         ''' The APTmotors class is defined with an info dictionary. The elliptec motor class attempts
         to ask the motor itself for this information instead. I have commented out information which
         was previously defined by the constructor which is now read from the device: see ELLmotor.py
-        '''  
-        self.attributes = info #Currently self.attributes['zero'] and self.attributes['serial'] are the only things that are important.
-        myport = self.getport(self.attributes['serial']) #Finding the port that our serial number is on
+        '''    
+        port = elliptec.find_ports()[0] #We need to find the port the motor is on to instance the controller.
+                                        #TODO: this assumes the first port with an ELL on it is the one we want to control: bad!
         
-        elliptec.Rotator.__init__(self, elliptec.Controller(myport)) #info['serial'], HWTYPE=31)
-        
+        elliptec.Rotator.__init__(self, elliptec.Controller(port)) #info['serial'], HWTYPE=31)
         # APTMotor.setVelocityParameters(
         #   self, info['minVel'], info['acc'], info['maxVel'])
         #self.set_backlash_dist(1.00019)  # sets the backlash correction
@@ -32,6 +30,9 @@ class RotationControllerELL(elliptec.Rotator):
         The backlash correction method in APTmotors was custom from our lab and doesn't exist in
         the elliptec package. I think ELL motors may do this on their own, but we may have to
         reimplement the method it if it proves necessary.'''
+        
+        self.attributes = info #We still need this because it contains self.attributes['zero']
+        
         #self.linear_range = (0, 360)
 
     def mAbs(self, absPosition):
@@ -59,23 +60,6 @@ class RotationControllerELL(elliptec.Rotator):
 
     def getAPos(self):
         return elliptec.Rotator.get_angle(self)
-        
-    def getport(self, myserial): #give this the serial number and it will look for the port with the device with that serial number
-        ports = elliptec.find_ports() #We need to find the ports for the ELL motors to instance the controller.
-        print(f'Searching for motor {myserial}')
-        portname = None
-        for port in ports:
-            print("Testing" + port)
-            
-            temp = elliptec.Rotator(elliptec.Controller(port))
-            info = temp.get("info") #XXX This currently can't handle multiple motors with a single serial connection.
-            motorserial = info["Serial No."]
-            
-            if int(motorserial) == myserial:
-                portname = port
-                print(f'Motor {myserial} is on port {port}')
-            del temp
-        return portname
 
 
 #The following information is irrelevant to this class , it is for the APT motors.
