@@ -77,6 +77,18 @@ class MotorController(Thread):
             return "Motor not connected"
         return self._send_and_recv(cmd, timeout)
 
+    def move(self, name: str, distance: int, timeout: int = None) -> str:
+        """Move motor `name` by `distance` units. + for CW, - for CCW."""
+        try:
+            idx = self.id_dict[name]
+            if distance > 0:
+                cmd = f"back {distance} {idx}"
+            else:  
+                cmd = f"for {distance} {idx}"
+        except KeyError:
+            return "Motor not connected"
+        return self._send_and_recv(cmd, timeout)
+
     def getAPos(self, name: str, timeout: int = None) -> str:
         """Get absolute position of motor `name`."""
         try:
