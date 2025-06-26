@@ -23,6 +23,9 @@ import usb
 import time
 import numpy as np
 from scipy.optimize import curve_fit
+import tkinter
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
@@ -117,7 +120,7 @@ def rotateAndCount(stage,start,end,stepSize,pm,countNum):
 
         # Now, 'delta' contains the shortest distance and direction
         print(f'Moving from {curPos} to {target_angle} by {delta} degrees')
-        stage.move(delta)
+        stage.move('TestELL16', delta)
 
 
         time.sleep(0.100)
