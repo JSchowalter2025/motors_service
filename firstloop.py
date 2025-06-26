@@ -427,13 +427,6 @@ def analyseZerosLoop(fname, norm=False, analyseNorm=False):
     plt.tight_layout()
 
     plt.show()
-(base) qeiminipc@qeiminipc-MINI-S:~/Documents/motors_fork/motors_service$ git pull
-Updating eb48577..85bdfd9
-error: Your local changes to the following files would be overwritten by merge:
-	firstloop.py
-Please commit your changes or stash them before you merge.
-Aborting
-
     return allData, results
 
 
@@ -445,9 +438,9 @@ def main():
     print("Homed Stage")
     time.sleep(1)
     filepath = './data/2025_06_26/powerCycles_'+str(int(time.time()))+'.csv'
-    d=measZerosLoop(filepath,stage,0,180,90,0.1,pmeter,1000,1)
+    d = measSweep(filepath,stage,0,360,0.25,pmeter,1000,1)
     print(d)
-    analyseZerosLoop(filepath)
+    analyseSweep(filepath)
     stage.close()
     pmeter.close()
     print("Loop Completed Successfully!")
