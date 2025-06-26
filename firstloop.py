@@ -98,25 +98,32 @@ def rotateAndCount(stage,start,end,stepSize,pm,countNum):
     nAngles = np.size(angles)
     powers = np.zeros((nAngles,3))
 
-    setCountTime([pm], countNum)
+    setCountTime(pm, countNum)
 
     for n in np.arange(nAngles):
 
-        curPos = stage.getPos()
-        if angles[n]-curPos > 0:
-            print(f'moving clockwise from {curPos} to {angles[n]}')
-            stage.move(angles[n]-curPos)
-        else:
-            print(f'moving counterclockwise from {curPos} to {angles[n]-5}')
-            stage.move(angles[n]-curPos-5)
-            print(f'now moving clockwise to {angles[n]}')
-            stage.move(angles[n]-stage.getPos())
+        curPos = float(stage.getPos('TestELL16'))
+
+        target_angle = angles[n] % 360
+
+        # Calculate the difference
+        delta = target_angle - curPos
+
+        # Adjust the delta to find the shortest path
+        if delta > 180:
+            delta -= 360  # Move counter-clockwise (negative)
+        elif delta < -180:
+            delta += 360  # Move clockwise (positive)
+
+        # Now, 'delta' contains the shortest distance and direction
+        print(f'Moving from {curPos} to {target_angle} by {delta} degrees')
+        stage.move(delta)
 
 
         time.sleep(0.100)
 
         power = getPower(pm)
-        stgAngle = stage.getPos()
+        stgAngle = stage.getPos('TestELL16')
 
         powers[n,0] = angles[n]
         powers[n,1] = stgAngle
@@ -129,7 +136,7 @@ def rotateAndCount(stage,start,end,stepSize,pm,countNum):
 def measZerosLoop(fname,stage,zero1,zero2,range,stepSize,pm,countNum,nLoops):
 
     for n in np.arange(nLoops):
-        stage.Home()
+        stage.home('TestELL16')
 
 
         data1 = rotateAndCount(stage,zero1-range,zero1+range,stepSize,pm,countNum)
@@ -374,7 +381,7 @@ def main():
     stage.home('TestELL16')
     print("Homed Stage")
     time.sleep(1)
-    filepath = './data/2025_06_25/powerCycles_'+str(int(time.time()))+'.csv'
+    filepath = './data/2025_06_26/powerCycles_'+str(int(time.time()))+'.csv'
     d=measZerosLoop(filepath,stage,0,180,90,0.1,pmeter,1000,1)
     print(d)
     analyseZerosLoop(filepath)
