@@ -23,6 +23,9 @@ import usb
 import time
 import numpy as np
 from scipy.optimize import curve_fit
+import tkinter
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
@@ -117,7 +120,7 @@ def rotateAndCount(stage,start,end,stepSize,pm,countNum):
 
         # Now, 'delta' contains the shortest distance and direction
         print(f'Moving from {curPos} to {target_angle} by {delta} degrees')
-        stage.move(delta)
+        stage.move('TestELL16', delta)
 
 
         time.sleep(0.100)
@@ -186,7 +189,6 @@ def analyseZerosLoop(fname, norm=False, analyseNorm=False):
         reshapedAnglesColumnIdx = np.arange(1,int(1+2*nMeas),2)
 
         reshapedData[:,reshapedAnglesColumnIdx] = allData[:,anglesColumnIdx]
-
         powersColumnIdx = np.arange(2,int(1+7*nMeas),7)
         powersNormColumnIdx = np.arange(5,int(1+7*nMeas),7)
         reshapedPowersColumnIdx = np.arange(2,int(1+2*nMeas),2)
@@ -382,7 +384,7 @@ def main():
     print("Homed Stage")
     time.sleep(1)
     filepath = './data/2025_06_26/powerCycles_'+str(int(time.time()))+'.csv'
-    d=measZerosLoop(filepath,stage,0,180,90,0.1,pmeter,1000,1)
+    d=measZerosLoop(filepath,stage,22.7387,202.7387,5,0.1,pmeter,1000,3)
     print(d)
     analyseZerosLoop(filepath)
     stage.close()
