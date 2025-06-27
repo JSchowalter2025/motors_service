@@ -203,6 +203,7 @@ def analyseSweep(fname):
     
     if fit_successful:
         # Create a dense set of angles for a smooth curve
+        print(params)
         smooth_angles = np.linspace(np.min(actual_angles), np.max(actual_angles), 500)
         fitted_curve = sinusoid(smooth_angles, *params) # The '*' unpacks the params array
         plt.plot(smooth_angles, fitted_curve, '-', color='red', label='Sinusoidal Fit')
