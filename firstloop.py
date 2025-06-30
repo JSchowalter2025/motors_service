@@ -158,66 +158,8 @@ def measZerosLoop(fname,stage,zero1,zero2,range,stepSize,pm,countNum,nLoops):
     return dataNew        
         
 
-def measSweep(fname,stage,start,end,stepSize,pm,countNum,nLoops):
-
-    for n in np.arange(nLoops):
-        stage.home('TestELL16')
-
-
-    data = rotateAndCount(stage,start,end,stepSize,pm,countNum)
-    np.savetxt(fname,data,delimiter=',')
-
-    return data        
-        
-
 def parabola(x, a, x0, c):
     return a*(x-x0)**2 + c
-
-def sinusoid(x, amplitude, frequency_mult, phase_shift, offset):
-    #convert degrees to radians inside the function for np.sin
-    return amplitude * np.sin(frequency_mult * np.deg2rad(x) + phase_shift) + offset
-
-def analyseSweep(fname):
-    allData = np.genfromtxt(fname, delimiter=',')
-    actual_angles = allData[:, 1]
-    power_readings = allData[:, 2]
-    amplitude_guess = (np.max(power_readings) - np.min(power_readings)) / 2
-    offset_guess = np.mean(power_readings)
-    frequency_mult_guess = 2 
-    phase_shift_guess = 0
-    
-    initial_guesses = [amplitude_guess, frequency_mult_guess, phase_shift_guess, offset_guess]
-    
-    try:
-        params, covariance = curve_fit(sinusoid, actual_angles, power_readings, p0=initial_guesses)
-        
-        errors = np.sqrt(np.diag(covariance))
-        fit_successful = True
-    except RuntimeError:
-        print("Curve fit failed. Could not find optimal parameters.")
-        fit_successful = False
-
-    plt.figure(figsize=(12, 7))
-    
-    plt.plot(actual_angles, power_readings, '.', label='Measured Data')
-    
-    if fit_successful:
-        # Create a dense set of angles for a smooth curve
-        print(params)
-        smooth_angles = np.linspace(np.min(actual_angles), np.max(actual_angles), 500)
-        fitted_curve = sinusoid(smooth_angles, *params) # The '*' unpacks the params array
-        plt.plot(smooth_angles, fitted_curve, '-', color='red', label='Sinusoidal Fit')
-
-    # Add labels and a title
-    plt.title(f'Power vs. Angle Measurement\n({fname})', fontweight='bold')
-    plt.xlabel('Stage Angle (degrees)')
-    plt.ylabel('Measured Power (W)')
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
 
 def calcAllanDev(x):
     nPoints = np.size(x)
@@ -247,7 +189,6 @@ def analyseZerosLoop(fname, norm=False, analyseNorm=False):
         reshapedAnglesColumnIdx = np.arange(1,int(1+2*nMeas),2)
 
         reshapedData[:,reshapedAnglesColumnIdx] = allData[:,anglesColumnIdx]
-
         powersColumnIdx = np.arange(2,int(1+7*nMeas),7)
         powersNormColumnIdx = np.arange(5,int(1+7*nMeas),7)
         reshapedPowersColumnIdx = np.arange(2,int(1+2*nMeas),2)
@@ -431,6 +372,7 @@ def analyseZerosLoop(fname, norm=False, analyseNorm=False):
     plt.tight_layout()
 
     plt.show()
+
     return allData, results
 
 
@@ -442,9 +384,9 @@ def main():
     print("Homed Stage")
     time.sleep(1)
     filepath = './data/2025_06_27/powerCycles_'+str(int(time.time()))+'.csv'
-    d = measSweep(filepath,stage,0,10800,360,pmeter,2000,1)
+    d=measZerosLoop(filepath,stage,20.97113,201.45731,5,0.01,pmeter,1000,1500)
     print(d)
-    analyseSweep(filepath)
+    analyseZerosLoop(filepath)
     stage.close()
     pmeter.close()
     print("Loop Completed Successfully!")
