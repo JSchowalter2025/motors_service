@@ -137,9 +137,9 @@ def rotateAndCount(stage,start,end,stepSize,pm,countNum):
 
 
 def measZerosLoop(fname,stage,zero1,zero2,range,stepSize,pm,countNum,nLoops):
-
+    stage.home('TestELL16')
     for n in np.arange(nLoops):
-        stage.home('TestELL16')
+        #stage.home('TestELL16')
 
 
         data1 = rotateAndCount(stage,zero1-range,zero1+range,stepSize,pm,countNum)
@@ -383,8 +383,8 @@ def main():
     stage.home('TestELL16')
     print("Homed Stage")
     time.sleep(1)
-    filepath = './data/2025_06_27/powerCycles_'+str(int(time.time()))+'.csv'
-    d=measZerosLoop(filepath,stage,20.97113,201.45731,5,0.01,pmeter,1000,1500)
+    filepath = './data/2025_06_30/powerCycles_'+str(int(time.time()))+'.csv'
+    d=measZerosLoop(filepath,stage,21.4051,201.4051,5,0.1,pmeter,700,30)
     print(d)
     analyseZerosLoop(filepath)
     stage.close()
