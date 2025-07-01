@@ -157,6 +157,133 @@ def measZerosLoop(fname,stage,zero1,zero2,range,stepSize,pm,countNum,nLoops):
          
     return dataNew        
         
+def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
+    """     Attempts to rotate forward and backwards between the two given positions, measuring position and power.
+            Make sure to set the countNum high enough to be below the recommended duty cycle: 40%"""
+
+    stage.home('TestELL16')
+    stage.goto('TestELL16',zero1)
+    distance = zero2-zero1
+
+    powers = np.zeros((1,4))
+    dataNew = np.array([])
+
+    for n in np.arange(nLoops):
+        time.sleep(0.100)
+
+        power1 = getPower(pm)
+        stgAngle1 = stage.getAPos('TestELL16')
+
+        powers[0,0] = stgAngle1
+        powers[0,1] = power1[0]
+        print(f"Loop {n+1}/{nLoops} | Pos1: {stgAngle1:.4f}, Power1: {power1[0]:.4f}")
+
+        stage.forward('TestELL16',distance)
+
+        time.sleep(0.100)
+
+        power2 = getPower(pm)
+        stgAngle2 = stage.getAPos('TestELL16')
+
+        powers[0,2] = stgAngle2
+        powers[0,3] = power2[0]
+        print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
+
+        stage.backward('TestELL16',distance)
+
+        if n == 0:
+            np.savetxt(fname,powers,delimiter=',')
+            dataNew = powers
+        else:
+            dataSaved = np.genfromtxt(fname,delimiter=',')
+            # Reshape is needed if only one row was saved previously
+            if dataSaved.ndim == 1:
+                dataSaved = dataSaved.reshape(1, -1)
+            dataNew = np.vstack((dataSaved,powers))
+            np.savetxt(fname,dataNew,delimiter=',')
+
+    return dataNew
+
+
+# --- Plotting Function ---
+
+def plot_flicker_data(data, zero1, zero2):
+    """
+    Generates four subplots to analyze the flicker measurement data.
+    1. Histogram of position errors at zero1.
+    2. Scatter plot and linear regression of power at zero1.
+    3. Histogram of position errors at zero2.
+    4. Scatter plot and linear regression of power at zero2.
+    """
+    # --- Data Extraction ---
+    # Ensure data is a 2D array for consistent indexing
+    if data.ndim == 1:
+        data = data.reshape(1, -1)
+
+    pos1_data = data[:, 0]
+    power1_data = data[:, 1]
+    pos2_data = data[:, 2]
+    power2_data = data[:, 3]
+
+    # --- Create Figure and Subplots ---
+    fig, axs = plt.subplots(2, 2, figsize=(14, 10))
+    fig.suptitle('Flicker Measurement Analysis', fontsize=16)
+
+    # --- 1. Histogram for Position 1 ---
+    ax1 = axs[0, 0]
+    pos1_errors = pos1_data - zero1
+    ax1.hist(pos1_errors, bins=20, color='skyblue', edgecolor='black')
+    ax1.set_title(f'Position 1 Error (Target: {zero1})')
+    ax1.set_xlabel('Error from Target Position (degrees)')
+    ax1.set_ylabel('Frequency')
+    ax1.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 2. Scatter Plot for Power 1 ---
+    ax2 = axs[0, 1]
+    x_axis = np.arange(len(power1_data))
+    ax2.scatter(x_axis, power1_data, alpha=0.7, label='Measured Power')
+
+    # Linear regression
+    def linear_func(x, a, b):
+        return a * x + b
+    popt, _ = curve_fit(linear_func, x_axis, power1_data)
+    a, b = popt
+    ax2.plot(x_axis, linear_func(x_axis, a, b), 'r-', label=f'Fit: y={a:.4e}x + {b:.4f}')
+
+    ax2.set_title('Power Readings at Position 1')
+    ax2.set_xlabel('Measurement Index')
+    ax2.set_ylabel('Power (W)')
+    ax2.legend()
+    ax2.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 3. Histogram for Position 2 ---
+    ax3 = axs[1, 0]
+    pos2_errors = pos2_data - zero2
+    ax3.hist(pos2_errors, bins=20, color='salmon', edgecolor='black')
+    ax3.set_title(f'Position 2 Error (Target: {zero2})')
+    ax3.set_xlabel('Error from Target Position (degrees)')
+    ax3.set_ylabel('Frequency')
+    ax3.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 4. Scatter Plot for Power 2 ---
+    ax4 = axs[1, 1]
+    x_axis_p2 = np.arange(len(power2_data))
+    ax4.scatter(x_axis_p2, power2_data, alpha=0.7, color='green', label='Measured Power')
+
+    # Linear regression
+    popt2, _ = curve_fit(linear_func, x_axis_p2, power2_data)
+    a2, b2 = popt2
+    ax4.plot(x_axis_p2, linear_func(x_axis_p2, a2, b2), 'r-', label=f'Fit: y={a2:.4e}x + {b2:.4f}')
+
+    ax4.set_title('Power Readings at Position 2')
+    ax4.set_xlabel('Measurement Index')
+    ax4.set_ylabel('Power (W)')
+    ax4.legend()
+    ax4.grid(True, linestyle='--', alpha=0.6)
+
+    # --- Display Plot ---
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show() 
 
 def parabola(x, a, x0, c):
     return a*(x-x0)**2 + c
@@ -172,7 +299,6 @@ def calcAllanDev(x):
         allanDevs[intNum-1,0] = intNum
 
     return allanDevs
-
 
 def analyseZerosLoop(fname, norm=False, analyseNorm=False):
 
