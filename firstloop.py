@@ -384,7 +384,7 @@ def main():
     print("Homed Stage")
     time.sleep(1)
     filepath = './data/2025_06_30/powerCycles_'+str(int(time.time()))+'.csv'
-    d=measZerosLoop(filepath,stage,21.4051,201.4051,5,0.1,pmeter,700,30)
+    d=measZerosLoop(filepath,stage,21.4051,201.4051,5,0.1,pmeter,700,500)
     print(d)
     analyseZerosLoop(filepath)
     stage.close()
