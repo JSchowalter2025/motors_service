@@ -161,6 +161,8 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
     """     Attempts to rotate forward and backwards between the two given positions, measuring position and power.
             Make sure to set the countNum high enough to be below the recommended duty cycle: 40%"""
 
+    setCountTime(pm, countNum)
+
     stage.home('TestELL16')
     stage.goto('TestELL16',zero1)
     distance = zero2-zero1
@@ -169,10 +171,10 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
     dataNew = np.array([])
 
     for n in np.arange(nLoops):
-        time.sleep(0.100)
+        time.sleep(0.200)
 
         power1 = getPower(pm)
-        stgAngle1 = stage.getAPos('TestELL16')
+        stgAngle1 = float(stage.getAPos('TestELL16'))
 
         powers[0,0] = stgAngle1
         powers[0,1] = power1[0]
@@ -180,10 +182,10 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
 
         stage.forward('TestELL16',distance)
 
-        time.sleep(0.100)
+        time.sleep(0.200)
 
         power2 = getPower(pm)
-        stgAngle2 = stage.getAPos('TestELL16')
+        stgAngle2 = float(stage.getAPos('TestELL16'))
 
         powers[0,2] = stgAngle2
         powers[0,3] = power2[0]
@@ -204,10 +206,7 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
 
     return dataNew
 
-
-# --- Plotting Function ---
-
-def plot_flicker_data(data, zero1, zero2):
+def analyseFlickerLoop(fname, zero1, zero2):
     """
     Generates four subplots to analyze the flicker measurement data.
     1. Histogram of position errors at zero1.
@@ -216,6 +215,7 @@ def plot_flicker_data(data, zero1, zero2):
     4. Scatter plot and linear regression of power at zero2.
     """
     # --- Data Extraction ---
+    data = np.genfromtxt(fname,delimiter=',')
     # Ensure data is a 2D array for consistent indexing
     if data.ndim == 1:
         data = data.reshape(1, -1)
@@ -226,7 +226,7 @@ def plot_flicker_data(data, zero1, zero2):
     power2_data = data[:, 3]
 
     # --- Create Figure and Subplots ---
-    fig, axs = plt.subplots(2, 2, figsize=(14, 10))
+    fig, axs = plt.subplots(2, 3, figsize=(14, 10))
     fig.suptitle('Flicker Measurement Analysis', fontsize=16)
 
     # --- 1. Histogram for Position 1 ---
@@ -280,6 +280,16 @@ def plot_flicker_data(data, zero1, zero2):
     ax4.set_ylabel('Power (W)')
     ax4.legend()
     ax4.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 5. Position Plot for Zero 1 ---
+    ax5 = axs[0, 2]
+    x_axis = np.arange(len(pos1_data))
+    ax5.scatter(x_axis, pos1_data, alpha=0.7, label='Position Drift 1')
+
+    # --- 5. Position Plot for Zero 2 ---
+    ax6 = axs[1, 2]
+    x_axis = np.arange(len(pos2_data))
+    ax6.scatter(x_axis, pos2_data, alpha=0.7, label='Position Drift 2')
 
     # --- Display Plot ---
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
@@ -510,9 +520,9 @@ def main():
     print("Homed Stage")
     time.sleep(1)
     filepath = './data/2025_06_30/powerCycles_'+str(int(time.time()))+'.csv'
-    d=measZerosLoop(filepath,stage,21.4051,201.4051,5,0.1,pmeter,700,500)
+    d=measFlickerLoop(filepath,stage,21.4051,201.4051,pmeter,1500,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
     print(d)
-    analyseZerosLoop(filepath)
+    analyseFlickerLoop(filepath,21.4051,201.4051)
     stage.close()
     pmeter.close()
     print("Loop Completed Successfully!")
