@@ -294,6 +294,99 @@ def analyseFlickerLoop(fname, zero1, zero2):
     # --- Display Plot ---
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show() 
+    
+def makenewgraph(fname, zero1, zero2):
+    """
+    Generates four subplots to analyze the flicker measurement data.
+    1. Histogram of position errors at zero1.
+    2. Scatter plot and linear regression of power at zero1.
+    3. Histogram of position errors at zero2.
+    4. Scatter plot and linear regression of power at zero2.
+    """
+    # --- Data Extraction ---
+    data = np.genfromtxt(fname,delimiter=',')
+    # Ensure data is a 2D array for consistent indexing
+    if data.ndim == 1:
+        data = data.reshape(1, -1)
+
+    pos1_data = data[:, 0]
+    power1_data = data[:, 1]
+    pos2_data = data[:, 2]
+    power2_data = data[:, 3]
+
+    # --- Create Figure and Subplots ---
+    fig, axs = plt.subplots(2, 3, figsize=(14, 10))
+    fig.suptitle('Flicker Measurement Analysis', fontsize=16)
+
+    # --- 1. Histogram for Position 1 ---
+    ax1 = axs[0, 0]
+    lastpos1 = np.roll(pos1_data,1)
+    lastpos1[0] = zero1
+    pos1_errors = pos1_data - lastpos1
+    ax1.hist(pos1_errors, bins=20, color='skyblue', edgecolor='black')
+    ax1.set_title(f'Position 1 Error (Target: {zero1})')
+    ax1.set_xlabel('Error from Target Position (degrees)')
+    ax1.set_ylabel('Frequency')
+    ax1.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 2. Scatter Plot for Power 1 ---
+    ax2 = axs[0, 1]
+    x_axis = np.arange(len(power1_data))
+    ax2.scatter(x_axis, power1_data, alpha=0.7, label='Measured Power')
+
+    # Linear regression
+    def linear_func(x, a, b):
+        return a * x + b
+    popt, _ = curve_fit(linear_func, x_axis, power1_data)
+    a, b = popt
+    ax2.plot(x_axis, linear_func(x_axis, a, b), 'r-', label=f'Fit: y={a:.4e}x + {b:.4f}')
+
+    ax2.set_title('Power Readings at Position 1')
+    ax2.set_xlabel('Measurement Index')
+    ax2.set_ylabel('Power (W)')
+    ax2.legend()
+    ax2.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 1. Histogram for Position 2 ---
+    ax3 = axs[1, 0]
+    lastpos2 = np.roll(pos1_data,1)
+    lastpos2[0] = zero1
+    pos1_errors = pos1_data - lastpos1
+    ax3.hist(pos1_errors, bins=20, color='salmon', edgecolor='black')
+    ax3.set_title(f'Position 2 Error (Target: {zero1})')
+    ax3.set_xlabel('Error from Target Position (degrees)')
+    ax3.set_ylabel('Frequency')
+    ax3.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 4. Scatter Plot for Power 2 ---
+    ax4 = axs[1, 1]
+    x_axis_p2 = np.arange(len(power2_data))
+    ax4.scatter(x_axis_p2, power2_data, alpha=0.7, color='green', label='Measured Power')
+
+    # Linear regression
+    popt2, _ = curve_fit(linear_func, x_axis_p2, power2_data)
+    a2, b2 = popt2
+    ax4.plot(x_axis_p2, linear_func(x_axis_p2, a2, b2), 'r-', label=f'Fit: y={a2:.4e}x + {b2:.4f}')
+
+    ax4.set_title('Power Readings at Position 2')
+    ax4.set_xlabel('Measurement Index')
+    ax4.set_ylabel('Power (W)')
+    ax4.legend()
+    ax4.grid(True, linestyle='--', alpha=0.6)
+
+    # --- 5. Position Plot for Zero 1 ---
+    ax5 = axs[0, 2]
+    x_axis = np.arange(len(pos1_data))
+    ax5.scatter(x_axis, pos1_data, alpha=0.7, label='Position Drift 1')
+
+    # --- 5. Position Plot for Zero 2 ---
+    ax6 = axs[1, 2]
+    x_axis = np.arange(len(pos2_data))
+    ax6.scatter(x_axis, pos2_data, alpha=0.7, label='Position Drift 2')
+
+    # --- Display Plot ---
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()     
 
 def parabola(x, a, x0, c):
     return a*(x-x0)**2 + c
