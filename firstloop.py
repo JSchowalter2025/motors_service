@@ -325,53 +325,39 @@ def makenewgraph(fname, zero1, zero2):
     pos1_errors = pos1_data - lastpos1
     ax1.hist(pos1_errors, bins=20, color='skyblue', edgecolor='black')
     ax1.set_title(f'Position 1 Error (Target: {zero1})')
-    ax1.set_xlabel('Error from Target Position (degrees)')
+    ax1.set_xlabel('Error accrued since last visit (degrees)')
     ax1.set_ylabel('Frequency')
     ax1.grid(True, linestyle='--', alpha=0.6)
 
-    # --- 2. Scatter Plot for Power 1 ---
+    # --- 1. Histogram for Position 1 ---
     ax2 = axs[0, 1]
-    x_axis = np.arange(len(power1_data))
-    ax2.scatter(x_axis, power1_data, alpha=0.7, label='Measured Power')
-
-    # Linear regression
-    def linear_func(x, a, b):
-        return a * x + b
-    popt, _ = curve_fit(linear_func, x_axis, power1_data)
-    a, b = popt
-    ax2.plot(x_axis, linear_func(x_axis, a, b), 'r-', label=f'Fit: y={a:.4e}x + {b:.4f}')
-
-    ax2.set_title('Power Readings at Position 1')
-    ax2.set_xlabel('Measurement Index')
-    ax2.set_ylabel('Power (W)')
-    ax2.legend()
+    beforepos2 = np.roll(pos2_data,1)
+    beforepos2[0] = zero2
+    pos1_errors = pos1_data - beforepos2 + 180
+    ax2.hist(pos1_errors, bins=20, color='skyblue', edgecolor='black')
+    ax2.set_title(f'Position 1 Error (Target: {zero1})')
+    ax2.set_xlabel('Error from ideal rotation (degrees)')
+    ax2.set_ylabel('Frequency')
     ax2.grid(True, linestyle='--', alpha=0.6)
-
     # --- 1. Histogram for Position 2 ---
     ax3 = axs[1, 0]
     lastpos2 = np.roll(pos2_data,1)
-    lastpos2[0] = zero1
+    lastpos2[0] = zero2
     pos2_errors = pos2_data - lastpos2
     ax3.hist(pos2_errors, bins=20, color='salmon', edgecolor='black')
     ax3.set_title(f'Position 2 Error (Target: {zero1})')
-    ax3.set_xlabel('Error from Target Position (degrees)')
+    ax3.set_xlabel('Error accrued since last visit  (degrees)')
     ax3.set_ylabel('Frequency')
     ax3.grid(True, linestyle='--', alpha=0.6)
 
-    # --- 4. Scatter Plot for Power 2 ---
+    # --- 1. Histogram for Position 1 ---
     ax4 = axs[1, 1]
-    x_axis_p2 = np.arange(len(power2_data))
-    ax4.scatter(x_axis_p2, power2_data, alpha=0.7, color='green', label='Measured Power')
-
-    # Linear regression
-    popt2, _ = curve_fit(linear_func, x_axis_p2, power2_data)
-    a2, b2 = popt2
-    ax4.plot(x_axis_p2, linear_func(x_axis_p2, a2, b2), 'r-', label=f'Fit: y={a2:.4e}x + {b2:.4f}')
-
-    ax4.set_title('Power Readings at Position 2')
-    ax4.set_xlabel('Measurement Index')
-    ax4.set_ylabel('Power (W)')
-    ax4.legend()
+    beforepos1 = pos1_data
+    pos2errors = pos2_data - beforepos1 + 180
+    ax4.hist(pos2errors, bins=20, color='skyblue', edgecolor='black')
+    ax4.set_title(f'Position 2 Error (Target: {zero1})')
+    ax4.set_xlabel('Error from ideal rotation (degrees)')
+    ax4.set_ylabel('Frequency')
     ax4.grid(True, linestyle='--', alpha=0.6)
 
     # --- 5. Position Plot for Zero 1 ---
