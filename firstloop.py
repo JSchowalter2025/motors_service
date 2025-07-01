@@ -349,10 +349,10 @@ def makenewgraph(fname, zero1, zero2):
 
     # --- 1. Histogram for Position 2 ---
     ax3 = axs[1, 0]
-    lastpos2 = np.roll(pos1_data,1)
+    lastpos2 = np.roll(pos2_data,1)
     lastpos2[0] = zero1
-    pos1_errors = pos1_data - lastpos1
-    ax3.hist(pos1_errors, bins=20, color='salmon', edgecolor='black')
+    pos2_errors = pos2_data - lastpos2
+    ax3.hist(pos2_errors, bins=20, color='salmon', edgecolor='black')
     ax3.set_title(f'Position 2 Error (Target: {zero1})')
     ax3.set_xlabel('Error from Target Position (degrees)')
     ax3.set_ylabel('Frequency')
