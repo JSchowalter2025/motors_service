@@ -171,7 +171,7 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
     dataNew = np.array([])
 
     for n in np.arange(nLoops):
-        time.sleep(0.200)
+        time.sleep(0.250)
 
         power1 = getPower(pm)
         stgAngle1 = float(stage.getAPos('TestELL16'))
@@ -180,9 +180,10 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,1] = power1[0]
         print(f"Loop {n+1}/{nLoops} | Pos1: {stgAngle1:.4f}, Power1: {power1[0]:.4f}")
 
-        stage.forward('TestELL16',distance)
+        #stage.forward('TestELL16',distance)    #relative movement
+        stage.goto('TestELL16',zero2)           #absolute movement
 
-        time.sleep(0.200)
+        time.sleep(0.250)
 
         power2 = getPower(pm)
         stgAngle2 = float(stage.getAPos('TestELL16'))
@@ -191,7 +192,8 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,3] = power2[0]
         print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
 
-        stage.backward('TestELL16',distance)
+        #stage.backward('TestELL16',distance)   #relative movement
+        stage.goto('TestELL16',zero1)           #absolute movement
 
         if n == 0:
             np.savetxt(fname,powers,delimiter=',')
