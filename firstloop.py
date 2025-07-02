@@ -156,8 +156,216 @@ def measZerosLoop(fname,stage,zero1,zero2,range,stepSize,pm,countNum,nLoops):
             np.savetxt(fname,dataNew,delimiter=',')
          
     return dataNew        
-        
+
 def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
+    """     Attempts to rotate forward and backwards between the two given positions, measuring position and power.
+            Make sure to set the countNum high enough to be below the recommended duty cycle: 40%"""
+
+    setCountTime(pm, countNum)
+
+    stage.home('TestELL16')
+    stage.goto('TestELL16',zero1)
+    distance = zero2-zero1
+
+    powers = np.zeros((1,4))
+    dataNew = np.array([])
+
+    for n in np.arange(nLoops):
+        time.sleep(0.250)
+
+        power1 = getPower(pm)
+        stgAngle1 = float(stage.getAPos('TestELL16'))
+
+        powers[0,0] = stgAngle1
+        powers[0,1] = power1[0]
+        print(f"Loop {n+1}/{nLoops} | Pos1: {stgAngle1:.4f}, Power1: {power1[0]:.4f}")
+
+        stage.forward('TestELL16',distance)    #relative movement
+        #stage.('TestELL16',zero2)           #absolute movement
+
+        time.sleep(0.250)
+
+        power2 = getPower(pm)
+        stgAngle2 = float(stage.getAPos('TestELL16'))
+
+        powers[0,2] = stgAngle2
+        powers[0,3] = power2[0]
+        print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
+
+        stage.backward('TestELL16',distance)   #relative movement
+        #stage.goto('TestELL16',zero1)           #absolute movement
+
+        if n == 0:
+            np.savetxt(fname,powers,delimiter=',')
+            dataNew = powers
+        else:
+            dataSaved = np.genfromtxt(fname,delimiter=',')
+            # Reshape is needed if only one row was saved previously
+            if dataSaved.ndim == 1:
+                dataSaved = dataSaved.reshape(1, -1)
+            dataNew = np.vstack((dataSaved,powers))
+            np.savetxt(fname,dataNew,delimiter=',')
+
+    return dataNew
+
+def measSweep(fname,stage,start,end,stepSize,pm,countNum,nLoops):
+
+
+
+
+
+    for n in np.arange(nLoops):
+
+
+        stage.home('TestELL16')
+
+
+
+
+
+
+
+
+    data = rotateAndCount(stage,start,end,stepSize,pm,countNum)
+
+
+    np.savetxt(fname,data,delimiter=',')
+
+
+
+
+
+    return data        
+
+def sinusoid(x, amplitude, frequency_mult, phase_shift, offset):
+
+
+    #convert degrees to radians inside the function for np.sin
+
+
+    return amplitude * np.sin(frequency_mult * np.deg2rad(x) + phase_shift) + offset
+
+
+
+
+
+def analyseSweep(fname):
+
+
+    allData = np.genfromtxt(fname, delimiter=',')
+
+
+    actual_angles = allData[:, 1]
+
+
+    power_readings = allData[:, 2]
+
+
+    amplitude_guess = (np.max(power_readings) - np.min(power_readings)) / 2
+
+
+    offset_guess = np.mean(power_readings)
+
+
+    frequency_mult_guess = 2 
+
+
+    phase_shift_guess = 0
+
+
+    
+
+
+    initial_guesses = [amplitude_guess, frequency_mult_guess, phase_shift_guess, offset_guess]
+
+
+    
+
+
+    try:
+
+
+        params, covariance = curve_fit(sinusoid, actual_angles, power_readings, p0=initial_guesses)
+
+
+        
+
+
+        errors = np.sqrt(np.diag(covariance))
+
+
+        fit_successful = True
+
+
+    except RuntimeError:
+
+
+        print("Curve fit failed. Could not find optimal parameters.")
+
+
+        fit_successful = False
+
+
+
+
+
+    plt.figure(figsize=(12, 7))
+
+
+    
+
+
+    plt.plot(actual_angles, power_readings, '.', label='Measured Data')
+
+
+    
+
+
+    if fit_successful:
+
+
+        # Create a dense set of angles for a smooth curve
+
+
+        print(params)
+
+
+        smooth_angles = np.linspace(np.min(actual_angles), np.max(actual_angles), 500)
+
+
+        fitted_curve = sinusoid(smooth_angles, *params) # The '*' unpacks the params array
+
+
+        plt.plot(smooth_angles, fitted_curve, '-', color='red', label='Sinusoidal Fit')
+
+
+
+
+
+    # Add labels and a title
+
+
+    plt.title(f'Power vs. Angle Measurement\n({fname})', fontweight='bold')
+
+
+    plt.xlabel('Stage Angle (degrees)')
+
+
+    plt.ylabel('Measured Power (W)')
+
+
+    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+
+    plt.legend()
+
+
+    plt.tight_layout()
+
+
+    plt.show()
+
+def measAbsFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
     """     Attempts to rotate forward and backwards between the two given positions, measuring position and power.
             Make sure to set the countNum high enough to be below the recommended duty cycle: 40%"""
 
@@ -375,6 +583,8 @@ def makenewgraph(fname, zero1, zero2):
     # --- Display Plot ---
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()     
+
+
 
 def parabola(x, a, x0, c):
     return a*(x-x0)**2 + c
@@ -600,8 +810,15 @@ def main():
     stage.home('TestELL16')
     print("Homed Stage")
     time.sleep(1)
-    filepath = './data/2025_06_30/powerCycles_'+str(int(time.time()))+'.csv'
+    filepath = './data/2025_06_30/relFlicker_'+str(int(time.time()))+'.csv'
     d=measFlickerLoop(filepath,stage,21.4051,201.4051,pmeter,1500,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
+    print(d)
+    analyseFlickerLoop(filepath,21.4051,201.4051)
+    stage.home('TestELL16')
+    print("Homed Stage")
+    time.sleep(1)
+    filepath = './data/2025_06_30/AbsFlicker_'+str(int(time.time()))+'.csv'
+    d=measAbsFlickerLoop(filepath,stage,21.4051,201.4051,pmeter,1500,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
     print(d)
     analyseFlickerLoop(filepath,21.4051,201.4051)
     stage.close()
