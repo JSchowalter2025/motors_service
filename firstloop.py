@@ -24,6 +24,8 @@ import time
 import numpy as np
 from scipy.optimize import curve_fit
 import tkinter
+from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool, TimeoutError
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -32,6 +34,7 @@ import matplotlib.pyplot as plt
 rm = pyvisa.ResourceManager()
 
 pmAddr = 'USB0::4883::32886::M01112547::0::INSTR' #Must be adjusted
+pmNormAddr = 'USB0::4883::32888::P0040935::0::INSTR'
 
 """
 USB0:: Indicates the connection is via USB.
@@ -135,6 +138,91 @@ def rotateAndCount(stage,start,end,stepSize,pm,countNum):
 
     return powers
 
+def getTwoPowers(pms):
+    ps = np.zeros((2,3))
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = executor.map(getPower, pms)
+        row = 0
+        for future in futures:
+            ps[row] = future
+            row += 1
+    return ps    
+
+# spin a stage and measure (normalized) power
+def rotateAndCountNorm(stage,start,end,stepSize,pm,pmNorm,countNum):
+    angles = np.arange(start,end,stepSize)
+    nAngles = np.size(angles)
+    powers = np.zeros([nAngles,8])
+
+    setCountTime(pm,countNum)
+    setCountTime(pmNorm,countNum)
+
+    for n in np.arange(nAngles):
+
+        curPos = float(stage.getPos('TestELL16'))
+
+        target_angle = angles[n] % 360
+
+        # Calculate the difference
+        delta = target_angle - curPos
+
+        # Adjust the delta to find the shortest path
+        if delta > 180:
+            delta -= 360  # Move counter-clockwise (negative)
+        elif delta < -180:
+            delta += 360  # Move clockwise (positive)
+
+        # Now, 'delta' contains the shortest distance and direction
+        print(f'Moving from {curPos} to {target_angle} by {delta} degrees')
+        stage.move('TestELL16', delta)
+
+        time.sleep(0.1)
+
+        stgAngle = stage.getPos('TestELL16')
+
+        twoPowers = getTwoPowers([pm,pmNorm])
+
+        powers[n,0] = angles[n]
+        powers[n,1] = stgAngle
+        powers[n,2:5] = twoPowers[0,:]
+        powers[n,5:8] = twoPowers[1,:]
+        print('angle', angles[n])
+        print('norm Power', powers[n,2]/powers[n,5])
+
+    return powers
+
+def calcAllanDevNorm(x,y):
+    nPoints = np.size(x)
+
+    allanDevs = np.zeros((int(nPoints/3),2))
+
+    for intNum in np.arange(1,int(nPoints/3)+1):
+        xTemp = np.mean(np.reshape(x[:int(nPoints/intNum)*intNum],[int(nPoints/intNum),intNum]),axis=1)
+        yTemp = np.mean(np.reshape(y[:int(nPoints/intNum)*intNum],[int(nPoints/intNum),intNum]),axis=1)
+
+        allanDevs[intNum-1,1] = np.sqrt(np.mean(np.diff(xTemp/yTemp)**2)/2)
+        allanDevs[intNum-1,0] = intNum
+    return allanDevs
+
+def measZerosLoopNorm(fname,stage,zero1,zero2,range,stepSize,pm,pmNorm,countNum,nLoops):
+
+    for n in np.arange(nLoops):
+        stage.home('TestELL16')
+
+
+        data1 = rotateAndCountNorm(stage,zero1-range,zero1+range,stepSize,pm,pmNorm,countNum)
+        data2 = rotateAndCountNorm(stage,zero2-range,zero2+range,stepSize,pm,pmNorm,countNum)
+    
+        data  =  np.vstack((data1,data2))
+
+        if n == 0:
+            np.savetxt(fname,data,delimiter=',')
+        else:
+            dataSaved = np.genfromtxt(fname,delimiter=',')
+            dataNew = np.hstack((dataSaved,data[:,1:]))
+            np.savetxt(fname,dataNew,delimiter=',')
+         
+    return dataNew
 
 def measZerosLoop(fname,stage,zero1,zero2,range,stepSize,pm,countNum,nLoops):
     stage.home('TestELL16')
@@ -194,6 +282,59 @@ def measFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
 
         stage.backward('TestELL16',distance)   #relative movement
         #stage.goto('TestELL16',zero1)           #absolute movement
+
+        if n == 0:
+            np.savetxt(fname,powers,delimiter=',')
+            dataNew = powers
+        else:
+            dataSaved = np.genfromtxt(fname,delimiter=',')
+            # Reshape is needed if only one row was saved previously
+            if dataSaved.ndim == 1:
+                dataSaved = dataSaved.reshape(1, -1)
+            dataNew = np.vstack((dataSaved,powers))
+            np.savetxt(fname,dataNew,delimiter=',')
+
+    return dataNew
+
+def measFlickerLoopHysteresis(fname,stage,zero1,zero2,pm,countNum,nLoops):
+    """     Attempts to rotate forward and backwards between the two given positions, measuring position and power.
+            Make sure to set the countNum high enough to be below the recommended duty cycle: 40%"""
+
+    setCountTime(pm, countNum)
+
+    stage.home('TestELL16')
+    stage.goto('TestELL16',zero1)
+    distance = zero2-zero1
+
+    powers = np.zeros((1,4))
+    dataNew = np.array([])
+
+    for n in np.arange(nLoops):
+        time.sleep(0.250)
+
+        power1 = getPower(pm)
+        stgAngle1 = float(stage.getAPos('TestELL16'))
+
+        powers[0,0] = stgAngle1
+        powers[0,1] = power1[0]
+        print(f"Loop {n+1}/{nLoops} | Pos1: {stgAngle1:.4f}, Power1: {power1[0]:.4f}")
+
+        #stage.forward('TestELL16',distance)    #relative movement
+        stage.goto('TestELL16',zero2)           #absolute movement
+
+        time.sleep(0.250)
+
+        power2 = getPower(pm)
+        stgAngle2 = float(stage.getAPos('TestELL16'))
+
+        powers[0,2] = stgAngle2
+        powers[0,3] = power2[0]
+        print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
+
+        #stage.backward('TestELL16',distance + 5)   #relative movement
+        #stage.forward('TestELL16', 5)
+        stage.goto('TestELL16',zero1 - 5)           #absolute movement
+        stage.goto('TestELL16',zero1) 
 
         if n == 0:
             np.savetxt(fname,powers,delimiter=',')
@@ -807,21 +948,15 @@ def analyseZerosLoop(fname, norm=False, analyseNorm=False):
 def main():
     pmeter = setup_powermeter(pmAddr,1000)
     print(pmeter)
+    normmeter = setup_powermeter(pmNormAddr,1000)
+    print(normmeter)
     stage.home('TestELL16')
     print("Homed Stage")
     time.sleep(1)
-    filepath = './data/2025_06_30/powerCycles_'+str(int(time.time()))+'.csv'
-    filepath = './data/2025_06_30/relFlicker_'+str(int(time.time()))+'.csv'
-    d=measFlickerLoop(filepath,stage,21.4051,201.4051,pmeter,1500,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
+    filepath = './data/2025_06_30/HysteresisRel_'+str(int(time.time()))+'.csv'
+    d=measFlickerLoopHysteresis(filepath,stage,107.8,287.8,pmeter,1000,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
     print(d)
-    analyseFlickerLoop(filepath,21.4051,201.4051)
-    stage.home('TestELL16')
-    print("Homed Stage")
-    time.sleep(1)
-    filepath = './data/2025_06_30/AbsFlicker_'+str(int(time.time()))+'.csv'
-    d=measAbsFlickerLoop(filepath,stage,21.4051,201.4051,pmeter,1500,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
-    print(d)
-    analyseFlickerLoop(filepath,21.4051,201.4051)
+    analyseFlickerLoop(filepath,True,True)
     stage.close()
     pmeter.close()
     print("Loop Completed Successfully!")
