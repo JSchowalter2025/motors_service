@@ -810,6 +810,7 @@ def main():
     stage.home('TestELL16')
     print("Homed Stage")
     time.sleep(1)
+    filepath = './data/2025_06_30/powerCycles_'+str(int(time.time()))+'.csv'
     filepath = './data/2025_06_30/relFlicker_'+str(int(time.time()))+'.csv'
     d=measFlickerLoop(filepath,stage,21.4051,201.4051,pmeter,1500,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
     print(d)
