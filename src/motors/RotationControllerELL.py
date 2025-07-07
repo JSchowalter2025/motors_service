@@ -70,10 +70,11 @@ class RotationControllerELL(elliptec.ELLRotator):
             info = temp.get("info") #XXX This currently can't handle multiple motors with a single serial connection.
             motorserial = info["Serial No."]
             
+            del temp
             if int(motorserial) == myserial:
                 portname = port
                 print(f'Motor {myserial} is on port {port}')
-            del temp
+                return portname
         return portname
 
 
