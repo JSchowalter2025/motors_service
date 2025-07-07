@@ -333,7 +333,7 @@ def measFlickerLoopHysteresis(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,3] = power2[0]
         print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
 
-        stage.forward('TestELL16',distance + 5)   #relative movement
+        stage.backward('TestELL16',distance - 5)   #relative movement
         #stage.goto('TestELL16',zero1 - 5)           #absolute movement
         stage.goto('TestELL16',zero1) 
 
