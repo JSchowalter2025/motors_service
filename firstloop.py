@@ -319,7 +319,7 @@ def measFlickerLoopHysteresis(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,1] = power1[0]
         print(f"Loop {n+1}/{nLoops} | Pos1: {stgAngle1:.4f}, Power1: {power1[0]:.4f}")
 
-        #stage.forward('TestELL16',distance + 5)    #relative movement
+        stage.forward('TestELL16',distance + 5)    #relative movement
         #stage.backward('TestELL16', 5)
         #stage.goto('TestELL16',zero2 + 5)
         stage.goto('TestELL16',zero2)           #absolute movement
@@ -333,8 +333,8 @@ def measFlickerLoopHysteresis(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,3] = power2[0]
         print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
 
-        #stage.backward('TestELL16',distance)   #relative movement
-        stage.goto('TestELL16',zero1 - 5)           #absolute movement
+        stage.forward('TestELL16',distance + 5)   #relative movement
+        #stage.goto('TestELL16',zero1 - 5)           #absolute movement
         stage.goto('TestELL16',zero1) 
 
         if n == 0:
@@ -530,7 +530,7 @@ def measAbsFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,1] = power1[0]
         print(f"Loop {n+1}/{nLoops} | Pos1: {stgAngle1:.4f}, Power1: {power1[0]:.4f}")
 
-        #stage.forward('TestELL16',distance)    #relative movement
+        stage.forward('TestELL16',distance + 5)    #relative movement
         stage.goto('TestELL16',zero2)           #absolute movement
 
         time.sleep(0.250)
@@ -542,7 +542,7 @@ def measAbsFlickerLoop(fname,stage,zero1,zero2,pm,countNum,nLoops):
         powers[0,3] = power2[0]
         print(f"Loop {n+1}/{nLoops} | Pos2: {stgAngle2:.4f}, Power2: {power2[0]:.4f}")
 
-        #stage.backward('TestELL16',distance)   #relative movement
+        stage.forward('TestELL16',distance + 5)   #relative movement
         stage.goto('TestELL16',zero1)           #absolute movement
 
         if n == 0:
@@ -954,8 +954,8 @@ def main():
     stage.home('TestELL16')
     print("Homed Stage")
     time.sleep(1)
-    filepath = './data/2025_07_07/AbsUpright_'+str(int(time.time()))+'.csv'
-    d=measAbsFlickerLoop(filepath,stage,107.8,287.8,pmeter,1000,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
+    filepath = './data/2025_07_07/AlwaysBackwards_'+str(int(time.time()))+'.csv'
+    d=measFlickerLoopHysteresis(filepath,stage,107.8,287.8,pmeter,1000,50) #fname,stage,zero1,zero2,pm,countNum,nLoops
     print(d)
     analyseFlickerLoop(filepath,107.8,287.8)
     stage.close()
