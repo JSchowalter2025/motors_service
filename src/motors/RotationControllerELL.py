@@ -63,18 +63,23 @@ class RotationControllerELL(elliptec.ELLRotator):
         ports = elliptec.find_ports() #We need to find the ports for the ELL motors to instance the controller.
         print(f'Searching for motor {myserial}')
         portname = None
+        motorserial = None
         for port in ports:
             print("Testing" + port)
             
-            temp = elliptec.ELLRotator(elliptec.ELLController(port))
-            info = temp.get("info") #XXX This currently can't handle multiple motors with a single serial connection.
-            motorserial = info["Serial No."]
             
-            del temp
-            if int(motorserial) == myserial:
-                portname = port
-                print(f'Motor {myserial} is on port {port}')
-                return portname
+            try: 
+                temp = elliptec.ELLRotator(elliptec.ELLController(port))
+                info = temp.get("info") #XXX This currently can't handle multiple motors with a single serial connection.
+                motorserial = info["Serial No."]
+                del temp
+                if int(motorserial) == myserial:
+                    portname = port
+                    print(f'Motor {myserial} is on port {port}')
+                    return portname
+            except:
+                print(f"Couldn't connect on port {port}")
+            
         return portname
 
 
