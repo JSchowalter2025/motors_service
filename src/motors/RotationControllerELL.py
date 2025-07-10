@@ -37,12 +37,18 @@ class RotationControllerELL(elliptec.ELLRotator):
         pos = (absPosition + self.attributes['zero']) % 360
         # print("Moving to %r (%r)..."%(absPosition,pos))
         try:
+            elliptec.ELLRotator.set_angle(self, pos+3)
+        except Exception:
+            print('Failed primary movement')
+            return 'Failed primary movement'
+        try:
             elliptec.ELLRotator.set_angle(self, pos)
         except Exception:
-            print('Failed')
-            return 'Failed'
+            print('Failed corrective movement')
+            return 'Failed corrective movement'
         # print('\t Moved to %r'%self.getPos())
         return 'Success'
+        
 
     def mRel(self, step):
         self.shift_angle(step)
