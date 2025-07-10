@@ -51,7 +51,10 @@ class RotationControllerELL(elliptec.ELLRotator):
         
 
     def mRel(self, step):
-        self.shift_angle(step)
+        #self.shift_angle(step) Actual relative movement
+        curPos = self.getPos()
+        self.mAbs(curPos + step + 3)
+        self.mAbs(curPos + step)
         return 'Success'
 
     def mHome(self):
