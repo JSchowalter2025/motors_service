@@ -5,7 +5,7 @@ import serial
 from .tools import parse
 
 
-class ELLController:
+class Controller:
     """Class for controlling the Elliptec devices via serial port. This is a general class,
     subclasses are implemented for each device type."""
 
