@@ -123,8 +123,8 @@ class MotorAPTZMQService(ZMQServiceBase):
                     self.logger.debug(f"Get absolute position command: {idx} -> {resp}")
                 elif cmd == 'home':
                     idx  = int(parts[1])
-                    self._motor[idx].mHome()
-                    resp = "Homed motor"
+                    error = self._motor[idx].mHome()
+                    resp = 'Homed Motor' if error == 'Success' else error
                     self.logger.debug(f"Home command: {idx}")
                 else: # done
                     idx  = int(parts[1])
