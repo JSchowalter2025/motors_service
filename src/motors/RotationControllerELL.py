@@ -58,7 +58,11 @@ class RotationControllerELL(elliptec.Rotator):
         return 'Success'
 
     def mHome(self):
-        elliptec.Rotator.home(self) #, velocity=9.99978, offset=4.00023) ?
+        try:    
+            elliptec.Rotator.home(self) #, velocity=9.99978, offset=4.00023) ?
+        except Exception:
+            print('Failed to home motor')
+            return 'Failed to home motor'
         return 'Success'
 
     def getPos(self):
@@ -77,7 +81,7 @@ class RotationControllerELL(elliptec.Rotator):
             print("Testing" + port)
             
             
-            try: 
+            try:
                 temp = elliptec.Rotator(elliptec.Controller(port))
                 info = temp.get("info") #XXX This currently can't handle multiple motors with a single serial connection.
                 motorserial = info["Serial No."]
