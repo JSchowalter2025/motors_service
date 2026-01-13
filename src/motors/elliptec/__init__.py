@@ -6,7 +6,7 @@ from .scan import find_ports, scan_for_devices
 from .tools import is_null_or_empty, parse, s32, error_check, move_check
 
 # Classes for controllers
-from .controller import ELLController
+from .controller import Controller
 
 # General class for all motors
 from .motor import Motor
@@ -14,7 +14,7 @@ from .motor import Motor
 # Individual device implementations
 from .shutter import Shutter
 from .slider import Slider
-from .rotator import ELLRotator
+from .rotator import Rotator
 from .linear import Linear
 from .iris import Iris
 
